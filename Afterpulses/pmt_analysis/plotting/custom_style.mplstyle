@@ -1,0 +1,27 @@
+# Matplotlib style sheet
+figure.figsize:      3.4908516673585166, 2.327234444905678  # figure size in inches
+figure.dpi:          200     # figure dots per inch
+savefig.dpi:         300     # figure dots per inch or 'figure'
+savefig.bbox:        tight   # {tight, standard}
+
+lines.linewidth:     0.75    # line width in points
+axes.linewidth:      0.75    # edge line width
+xtick.major.width:   0.75    # major x tick width in points
+ytick.major.width:   0.75    # major y tick width in points
+xtick.direction:     in      # direction: {in, out, inout}
+ytick.direction:     in      # direction: {in, out, inout}
+axes.axisbelow:      False   # draw axis gridlines and ticks above all (False)
+
+font.size:           7       # default text sizes
+axes.labelsize:      7       # font size of the x and y labels
+xtick.labelsize:     6       # font size of the x tick labels
+ytick.labelsize:     6       # font size of the y tick labels
+legend.fontsize:     5       # font size of the legend
+pdf.fonttype:        42      # Output Type 3 (Type3) or Type 42 (TrueType)
+text.latex.preamble: [r'\usepackage{amsmath}']
+
+legend.frameon:      True    # if True, draw the legend on a background patch
+legend.edgecolor:    'black' # background patch boundary color
+legend.fancybox:     False   # if True, use a rounded box for the legend background, else a rectangle
+legend.shadow:       False   # if True, give background a shadow effect
+
