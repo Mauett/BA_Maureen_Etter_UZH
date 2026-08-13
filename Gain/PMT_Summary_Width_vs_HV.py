@@ -38,8 +38,8 @@ import matplotlib.pyplot as plt
 # ------------------------------------------------------------------
 # CONFIG
 # ------------------------------------------------------------------
-BASE_OUTPUT_DIR = Path(__file__).resolve().parent / "Gain_Results"
-BASE_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+BASE_RESULTS_DIR = Path(__file__).resolve().parent / "Gain_Results"
+BASE_RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 OUTPUT_DIR = BASE_RESULTS_DIR
 OUTPUT_PLOT = OUTPUT_DIR / "sigma_over_mu_vs_high_voltage_all_pmts.png"
@@ -72,7 +72,11 @@ PMT_COLORS = {
 # ------------------------------------------------------------------
 def extract_hv_from_name(name: str):
     s = name.replace("-", "_")
-    m = re.search(r"_(\d{3,4})V(?:_|\.|$)", s)
+    m = re.search(
+        r"Lamp_?([0-9]+(?:\.[0-9]+)?)_?Vpp",
+        s,
+        re.IGNORECASE,
+    )
     if m:
         return int(m.group(1))
     return None
