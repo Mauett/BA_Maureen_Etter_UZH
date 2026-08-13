@@ -1,170 +1,125 @@
-# Full-data PMT afterpulse analysis
+# PMT afterpulse analysis
 
-Four scripts measure PMT afterpulsing from full waveform datasets, recreate summary plots, add an uncertainty budget, and inspect secondary peaks close to the main pulse.
-
-The main result is the separable afterpulse rate per photoelectron:
-
-\[
-R_{\mathrm{AP}}/\mathrm{PE}=
-\frac{N_{\mathrm{AP,separable}}}{\sum A_{P0}\,[\mathrm{PE}]}.
-\]
-
-Rates are also split into afterpulse areas below and above 2 PE by default.
+This four-script workflow analyzes full PMT waveform datasets, plots the results, adds uncertainties, and checks early secondary peaks that may be ringing.
 
 ## Scripts
 
 | Script | Purpose |
 |---|---|
-| `AP_Run_anaysis_better_plots.py` | Runs the full waveform analysis, writes `afterpulse_summary.csv`, and creates run and PMT plots. |
-| `AP_make_summary_plots_from_csv.py` | Recreates comparison plots and tables from the summary CSV without rerunning waveform analysis. |
-| `AP_postprocess_uncertainties.py` | Adds gain propagation and PMT-level statistical/systematic uncertainty estimates. |
-| `AP_plot_early_secondary_pulses_side_info_style.py` | Inspects peaks 30–60 samples after the main pulse to test the ringing/recovery cut. |
+| `AP_Run_anaysis_better_plots.py` | Full analysis; creates `afterpulse_summary.csv` and diagnostic plots. |
+| `AP_make_summary_plots_from_csv.py` | Recreates PMT comparison plots and tables from the CSV. |
+| `AP_postprocess_uncertainties.py` | Adds gain, run-to-run, frame, and optional cut uncertainties. |
+| `AP_plot_early_secondary_pulses_side_info_style.py` | Inspects secondary peaks 30–60 samples after the main pulse. |
 
-If the local filenames differ, the roles and execution order are unchanged.
+## Requirements and setup
 
-## Requirements
+Requires Python 3, `numpy`, `pandas`, `matplotlib`, `uproot`, `scipy`, `tqdm`, and `pmt_analysis`.
 
-- Python 3
-- `numpy`, `pandas`, `matplotlib`, `uproot`
-- `scipy` and `tqdm` for the early-peak diagnostic
-- `pmt_analysis`
-
-The installed `pmt_analysis` must support the adjustable early-window arguments passed to `AfterPulses`.
-
-## Input layout and configuration
-
-The scripts expect dated data directories containing `APLV...` run folders:
+Expected input layout:
 
 ```text
-BASE_PATH/
-└── data_YYYYMMDD/
-    └── APLV.../
-        └── APLV..._Module_0_*.root
+BASE_PATH/data_YYYYMMDD/APLV.../APLV..._Module_0_*.root
 ```
 
-Run names must contain a PMT serial such as `LV2483`, an HV such as `800V`, and a lamp value such as `Lamp1.95Vpp`.
+### Naming convention
 
-Before running, check:
+Each run directory must:
 
-- `BASE_PATH` and `PMT_FOLDERS`;
-- `BASE_SAVE_DIR` in every script;
-- `TARGET_LAMP_PER_PMT` for afterpulse-run selection;
-- `GAIN_RESULTS_DIRS` and `TARGET_GAIN_LAMP_PER_PMT` for gain lookup;
-- `SUMMARY_CSV` or `DEFAULT_SUMMARY_CSV` in the post-processing scripts.
+- start with `APLV`;
+- contain the PMT serial as `LV` plus four digits, for example `LV2483`;
+- contain the high voltage as three or four digits followed by `V`, for example `800V` or `-800V`;
+- contain the lamp voltage in a recognized form, such as `Lamp1.95Vpp`, `Lamp_1.95_Vpp`, or `Lamp1.95_Vpp`.
 
-The analysis, plotting, and uncertainty scripts use independent path settings. Make sure they all point to the same `afterpulse_summary.csv`.
+Example:
 
-## Gain lookup and run selection
-
-The main analysis searches `GAIN_RESULTS_DIRS` recursively for `*_results.json`. It matches each run by PMT, HV, and the configured gain lamp. It prefers:
-
-1. model-dependent gain;
-2. a successful fit;
-3. the closest lamp match;
-4. the newest result.
-
-If no valid gain exists, the run is skipped. The selected value, uncertainty, source, and JSON path are stored in the summary CSV.
-
-Runs are selected from `APLV...` folders whose lamp matches `TARGET_LAMP_PER_PMT`. ROOT branch/channel 0 is read through `ADCRawData`. Waveforms with 3500 samples are cropped to the first 1500; other lengths are retained and recorded.
-
-## Full-data analysis
-
-For every accepted run, the main script:
-
-1. loads waveforms and ADC metadata;
-2. selects the matching gain;
-3. processes all waveforms in chunks;
-4. finds peaks and constrains the main pulse;
-5. calculates afterpulse properties, multiplicities, and rates;
-6. combines counts and main-pulse normalization across chunks;
-7. makes plots from a smaller waveform subset;
-8. adds one row to `afterpulse_summary.csv`.
-
-Key defaults:
-
-| Setting | Default |
-|---|---:|
-| Area split | 2 PE |
-| Peak height | 50 ADC |
-| Peak distance | 25 samples |
-| Conditional early region | 10–60 samples |
-| Minimum peak height in that region | 100 ADC |
-| Analysis chunk | 20,000 waveforms |
-| Plotting subset | 10,000 waveforms |
-
-The full dataset determines the statistics; chunking only limits memory use. Extra zoom plots may clip the main pulse to make smaller afterpulses visible, but this does not affect the calculation.
-
-### Main CSV fields
-
-- Run and calibration: `pmt_serial`, `run_name`, `hv_v`, `lamp_v`, `gain`, `gain_unc`, `gain_source`, `gain_result_file`
-- Exposure: `n_samples`, `n_main_pulses`, `frame_type`, `n_samples_per_waveform`
-- Normalization: `mean_p0_area_pe`, `sum_p0_area_pe`
-- Counts: `n_ap`, `n_ap_separable`, and above/below-threshold counts
-- Rates: `ap_rate_per_pe`, `ap_rate_per_pe_separable`, `ap_rate_per_pe_above_thr`, `ap_rate_per_pe_below_thr`
-- Counting uncertainties: corresponding `_unc` columns
-
-Here `n_samples` means analyzed waveforms/triggers, not ADC time bins.
-
-Per-run counting errors use
-
-\[
-\sigma_{N/D}=\frac{\sqrt N}{D},
-\]
-
-with the normalization treated as fixed.
-
-## Summary plots from CSV
-
-```bash
-python AP_make_summary_plots_from_csv.py /path/to/afterpulse_summary.csv \
-  --output-dir /path/to/plots
+```text
+data_20260306/
+└── APLV2483_Lamp1.95Vpp_800V/
+    ├── APLV2483_Lamp1.95Vpp_800V_Module_0_000.root
+    └── APLV2483_Lamp1.95Vpp_800V_Module_0_001.root
 ```
 
-This creates PMT threshold comparisons, run scatter, large-afterpulse fractions, frame-length comparisons, and PMT summary tables. It reports run means, standard deviations, SEMs, and propagated per-run errors on the mean.
+The directory name is the `run_name`. Its ROOT files must repeat that name exactly, followed by `_Module_0_` and any file suffix:
 
-For the fraction above 2 PE, the preferred calculation is
+```text
+<run_name>/<run_name>_Module_0_*.root
+```
+
+The scripts extract `LV2483`, `1.95 Vpp`, and `800 V` from the name. These values are used to select the requested lamp dataset and find the matching gain result. Avoid extra voltage-like text, missing units, or inconsistent directory/file prefixes. A name that cannot be parsed is skipped or fails gain matching.
+
+Before running, configure:
+
+- `BASE_PATH`, `PMT_FOLDERS`, and `BASE_SAVE_DIR`;
+- `TARGET_LAMP_PER_PMT` for afterpulse runs;
+- `GAIN_RESULTS_DIRS` and `TARGET_GAIN_LAMP_PER_PMT` for calibration;
+- `SUMMARY_CSV` in the post-processing script.
+
+All scripts that consume `afterpulse_summary.csv` must point to the main analysis output directory.
+
+## Analysis
+
+The main script selects `APLV...` runs at the configured lamp voltage and matches gain-result JSON files by PMT, HV, and gain lamp. Model-dependent gain is preferred; model-independent gain is the fallback. Runs without a valid gain are skipped.
+
+All waveforms are analyzed in chunks; only a reduced subset is plotted. The default peak settings are 50 ADC height and 25 samples separation. Early candidates in the 10–60 sample region must satisfy the additional 100 ADC requirement. Waveforms with 3500 samples are cropped to 1500.
+
+The primary result is
 
 \[
-f=\frac{N_{\ge 2\mathrm{PE}}}{N_{\mathrm{separable}}},
-\qquad
-\sigma_f=\sqrt{\frac{f(1-f)}{N_{\mathrm{separable}}}}.
+R_{\mathrm{AP}}/\mathrm{PE}=
+\frac{N_{\mathrm{AP,separable}}}{\sum A_{P0}\,[\mathrm{PE}]},
 \]
 
-This script only replots existing results. Changes to gains, cuts, or waveform processing require rerunning the main analysis.
+split into afterpulse areas below and above 2 PE. Per-run count uncertainties use
 
-## Uncertainty post-processing
+\[
+\sigma_R=\frac{\sqrt{N}}{\sum A_{P0}\,[\mathrm{PE}]}.
+\]
 
-Set `SUMMARY_CSV`, then run:
+The CSV records run metadata, gain provenance, frame length, waveform and candidate counts, main-pulse normalization, rates, threshold splits, and statistical uncertainties.
+
+## Running
 
 ```bash
+python AP_plot_early_secondary_pulses_side_info_style.py
+python AP_Run_anaysis_better_plots.py
+python AP_make_summary_plots_from_csv.py /path/to/afterpulse_summary.csv
 python AP_postprocess_uncertainties.py
 ```
 
-Gain propagation uses
+Recommended order: verify gains, inspect early peaks, run the full analysis, check skipped runs and CSV contents, regenerate summary plots, then calculate uncertainties.
 
-\[
-\sigma_{R,G}=|R|\frac{\sigma_G}{G}.
-\]
+## Outputs
 
-The PMT summaries contain run-to-run standard deviation and SEM, propagated Poisson uncertainty, correlated gain systematic, frame-size systematic, and optional cut-variation systematic. Independent components are combined in quadrature in several clearly named columns.
-
-To include cut systematics, add labeled nominal and alternative-cut CSVs to `CUT_VARIATION_SUMMARY_FILES`. An empty list makes this contribution zero; it does not establish that the effect is negligible.
-
-Main outputs:
-
+- `afterpulse_summary.csv`: authoritative per-run results
+- PMT threshold, run-scatter, large-pulse-fraction, and frame-length plots
+- PMT summary CSVs generated from the main table
 - `afterpulse_summary_with_uncertainties.csv`
-- `<rate>_pmt_uncertainty_summary.csv`
-- `PMT_comparison_split_threshold_with_uncertainties.png`
-- `PMT_uncertainty_budget_separable.png`
+- per-rate PMT uncertainty summaries and uncertainty-budget plots
+- early-secondary waveform plots and candidate/count CSVs
 
-The gain term covers PE normalization but not migration across the 2 PE boundary.
+## Uncertainties
 
-## Early-secondary-peak diagnostic
+The post-processing script adds:
 
-This script independently checks whether peaks 30–60 samples after the main pulse resemble ringing or recovery structure. It does not call `AfterPulses.find_ap()`.
+- run-to-run standard deviation and SEM;
+- propagated Poisson uncertainty;
+- gain systematic, using `sigma_R,G = |R| sigma_G/G`;
+- frame-length systematic;
+- optional cut systematic from `CUT_VARIATION_SUMMARY_FILES`.
 
-It baseline-subtracts and sign-inverts each waveform, applies a noise prefilter, calls `scipy.signal.find_peaks()`, treats the first peak as the main pulse, and plots later peaks satisfying `30 <= delay < 60` samples.
+The gain term covers normalization but not migration across the 2 PE threshold. An empty cut-variation list makes that component zero; it does not demonstrate that the cut uncertainty is negligible.
 
-Outputs include zoomed waveform PNGs, per-run candidate CSVs, `early_secondary_candidates_all_runs.csv`, and `early_secondary_candidate_counts.csv`.
+## Early-peak diagnostic
 
-By default, only four candidates are saved per PMT and later runs may be skipped after that limit. Therefore, the default counts are diagnostic—not an unbiased early-pulse rate.
+The independent diagnostic baseline-subtracts and sign-inverts waveforms, finds peaks with SciPy, and plots candidates satisfying `30 <= delay < 60` samples. It does not use `AfterPulses.find_ap()`, allowing the early-time exclusion to be checked independently.
+
+Only four candidates per PMT are saved by default, so its counts are diagnostic rather than an unbiased early-pulse rate.
+
+## Caveats
+
+- Directory and file naming controls discovery, run selection, and gain matching; review skipped-run messages.
+- Short or cropped frames cannot contain late afterpulses.
+- PMT means weight runs equally, not by exposure or inverse variance.
+- Zero candidates produce a zero error in the simple Poisson approximation; use proper intervals for low-count limits.
+- A single run gives zero run-to-run spread in the script, not proof of zero uncertainty.
+- Archive the scripts, configuration, gain JSONs, logs, CSVs, and software versions with reported results.
