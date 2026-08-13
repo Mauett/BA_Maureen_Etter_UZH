@@ -6,10 +6,10 @@ This four-script workflow analyzes full PMT waveform datasets, plots the results
 
 | Script | Purpose |
 |---|---|
-| `AP_Run_anaysis_better_plots.py` | Full analysis; creates `afterpulse_summary.csv` and diagnostic plots. |
-| `AP_make_summary_plots_from_csv.py` | Recreates PMT comparison plots and tables from the CSV. |
-| `AP_postprocess_uncertainties.py` | Adds gain, run-to-run, frame, and optional cut uncertainties. |
-| `AP_plot_early_secondary_pulses_side_info_style.py` | Inspects secondary peaks 30–60 samples after the main pulse. |
+| `Run_Afterpulse_Analysis.py` | Full analysis; creates `afterpulse_summary.csv` and diagnostic plots. |
+| `AP_Summary.py` | Recreates PMT comparison plots and tables from the CSV. |
+| `AP_Error.py` | Adds gain, run-to-run, frame, and optional cut uncertainties. |
+| `AP_Close_to_main.py` | Inspects secondary peaks 30–60 samples after the main pulse. |
 
 ## Requirements and setup
 
@@ -80,10 +80,10 @@ The CSV records run metadata, gain provenance, frame length, waveform and candid
 ## Running
 
 ```bash
-python AP_plot_early_secondary_pulses_side_info_style.py
-python AP_Run_anaysis_better_plots.py
-python AP_make_summary_plots_from_csv.py /path/to/afterpulse_summary.csv
-python AP_postprocess_uncertainties.py
+python AP_Close_to_main.py
+python Run_Afterpulse_Analysis.py
+python AP_Summary.py /path/to/afterpulse_summary.csv
+python AP_Error.py
 ```
 
 Recommended order: verify gains, inspect early peaks, run the full analysis, check skipped runs and CSV contents, regenerate summary plots, then calculate uncertainties.
