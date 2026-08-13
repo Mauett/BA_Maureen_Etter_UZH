@@ -13,8 +13,16 @@ import subprocess
 from pathlib import Path
 import sys
 
-BASE_PATH = Path(__file__).resolve().parent
-ANALYSIS = BASE_PATH / "Gain_analysis_all.py"
+SCRIPT_DIR = Path(__file__).resolve().parent
+ANALYSIS = SCRIPT_DIR / "Gain_analysis_all.py"
+
+data_root_text = os.environ.get("MARMOTX_DATA_DIR")
+if not data_root_text:
+    raise RuntimeError(
+        "Set MARMOTX_DATA_DIR to the directory containing the data folders."
+    )
+
+DATA_ROOT = Path(data_root_text).expanduser().resolve()
 
 PMT_FOLDERS = [
     "data_20260112",
