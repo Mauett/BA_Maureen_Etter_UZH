@@ -6,11 +6,11 @@ This five-script workflow extracts PMT gain from LED ON/OFF spectra, runs the an
 
 | Script | Purpose |
 |---|---|
-| `gain_analysis_one_plot.py` | Analyzes one LED ON/OFF pair using model-independent gain extraction and a model-dependent multi-PE fit. |
-| `run_gain_analysis_one_plot.py` | Finds matching SPE files and runs the gain analysis for all configured PMTs, folders, and lamp voltages. |
-| `plot_pmt_gain_vs_high_voltage.py` | Reads result JSONs, combines duplicate PMT/HV measurements, fits `G(V) = A V^k`, and writes comparison plots/CSVs. |
-| `plot_sigma_over_mu_vs_hv_all_pmts.py` | Plots SPE resolution `sigma1 / (mu1 - munoise)` versus HV from successful model-dependent fits. |
-| `plot_lv2480_800v_1p9vpp_spectrum_only.py` | Produces a simple LED ON/OFF integrated-charge spectrum without gain extraction or fit overlays. |
+| `Gain_analysis_all.py` | Analyzes one LED ON/OFF pair using model-independent gain extraction and a model-dependent multi-PE fit. |
+| `Run_gain_analysis.py` | Finds matching SPE files and runs the gain analysis for all configured PMTs, folders, and lamp voltages. |
+| `PMT_Summary_Gain_vs_HV.py` | Reads result JSONs, combines duplicate PMT/HV measurements, fits `G(V) = A V^k`, and writes comparison plots/CSVs. |
+| `PMT_Summary_Width_vs_HV.py` | Plots SPE resolution `sigma1 / (mu1 - munoise)` versus HV from successful model-dependent fits. |
+| `One_Spectrum.py` | Produces a simple LED ON/OFF integrated-charge spectrum without gain extraction or fit overlays. |
 
 ## Requirements and setup
 
@@ -19,7 +19,7 @@ Requires Python 3, `numpy`, `matplotlib`, `scipy`, and `pmt_analysis`.
 Before running, configure:
 
 - data paths and `PMT_FOLDERS` in the runner and spectrum-only script;
-- the runner’s `ANALYSIS` path so it points to `gain_analysis_one_plot.py` (its current default is `Gain_analysis_all.py`);
+- the runner’s `ANALYSIS` path so it points to `Gain_analysis_all.py`;
 - baseline, integration-window, and channel settings;
 - `TARGET_LAMP_PER_PMT` consistently across batch and summary scripts;
 - `BASE_OUTPUT_DIR`, which defaults to `Gain_Results` beside the analysis script.
@@ -53,7 +53,7 @@ The runner selects one ON lamp per PMT from `TARGET_LAMP_PER_PMT`. Within each d
 Example:
 
 ```bash
-python gain_analysis_one_plot.py \
+python Gain_analysis_all.py \
   -pon /path/to/LED_ON.root \
   -poff /path/to/LED_OFF.root \
   -bbl 0 -bbu 100 -bpl 100 -c 0
@@ -80,7 +80,7 @@ Outputs are written under `Gain_Results/<PMT>/`:
 ## Batch execution
 
 ```bash
-python run_gain_analysis_one_plot.py
+python Run_gain_analysis.py
 ```
 
 The runner scans the configured folders for `SPE*` files, filters ON files by each PMT’s target lamp, selects one OFF file per PMT/folder, and invokes the single-pair analysis. It continues after missing files or failed analyses, so review all warnings and return codes.
@@ -88,7 +88,7 @@ The runner scans the configured folders for `SPE*` files, filters ON files by ea
 ## Gain versus high voltage
 
 ```bash
-python plot_pmt_gain_vs_high_voltage.py
+python PMT_Summary_Gain_vs_HV.py
 ```
 
 The script scans:
@@ -110,7 +110,7 @@ through a linear fit in log-log space. Outputs include the gain/HV plot, the sel
 ## SPE resolution versus high voltage
 
 ```bash
-python plot_sigma_over_mu_vs_hv_all_pmts.py
+python PMT_Summary_Width_vs_HV.py
 ```
 
 The plotted resolution is
@@ -130,7 +130,7 @@ Outputs are `sigma_over_mu_vs_high_voltage_all_pmts.png` and `.csv`.
 ## Spectrum-only plot
 
 ```bash
-python plot_lv2480_800v_1p9vpp_spectrum_only.py
+python One_Spectrum.py
 ```
 
 Configure `TARGET_PMT`, `TARGET_HV`, `TARGET_LAMP_VPP`, `SELECTED_FOLDER`, and optionally `SELECTED_ON_FILE`. The script selects one ON file and one 0.50 Vpp OFF file, integrates both with the same windows, and saves a plain overlaid histogram. It performs no gain calculation or fit.
@@ -139,7 +139,7 @@ Configure `TARGET_PMT`, `TARGET_HV`, `TARGET_LAMP_VPP`, `SELECTED_FOLDER`, and o
 
 1. Verify naming, integration windows, channel, and ON/OFF pairing.
 2. Run the spectrum-only script for a visual sanity check.
-3. Test `gain_analysis_one_plot.py` on one pair.
+3. Test `Gain_analysis_all.py` on one pair.
 4. Run the batch runner and inspect failed/skipped files.
 5. Check the generated fit figures and JSON metadata.
 6. Produce gain-versus-HV and σ/μ-versus-HV summaries.
@@ -153,4 +153,5 @@ Configure `TARGET_PMT`, `TARGET_HV`, `TARGET_LAMP_VPP`, `SELECTED_FOLDER`, and o
 - Power-law fitting requires positive gains and voltages and enough distinct HV points.
 - Keep lamp selections consistent between batch analysis and summary plotting.
 - Archive scripts, configuration, result JSONs, plots, logs, and the `pmt_analysis` version with reported results.
+
 
