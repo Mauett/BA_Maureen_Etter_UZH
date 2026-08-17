@@ -898,8 +898,7 @@ def plot_entries_and_precision(
                 ax_res.axhline(3, color="red", linestyle="--", linewidth=1.2, label=r"$\pm3\sigma$")
                 ax_res.axhline(-3, color="red", linestyle="--", linewidth=1.2)
                 ax_res.set_title(
-                     rf"$\mathrm{{RMS}}={rms_pull:.2f}$, "
-                    rf"$f_{{|r|>3\sigma}}={frac_gt3:.1%}$",
+                    rf"$\mathrm{{RMS}}={rms_pull:.2f},\quad f_{{|r|>3\sigma}}={frac_gt3*100:.1f}$%",
                     fontsize=12,
                 )
                 ax_res.legend(loc="upper right", fontsize=12)
