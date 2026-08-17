@@ -73,7 +73,7 @@ PMT_COLORS = {
 def extract_hv_from_name(name: str):
     s = name.replace("-", "_")
     m = re.search(
-        r"Lamp_?([0-9]+(?:\.[0-9]+)?)_?Vpp",
+        r"U0_([0-9]+(?:\.[0-9]+)?)V",
         s,
         re.IGNORECASE,
     )
