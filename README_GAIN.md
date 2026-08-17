@@ -1,5 +1,7 @@
 # PMT gain analysis
 
+This work was based on the existing pmt_analysis package, mainly developed by Alexander Bismarck (https://github.com/Physik-Institut-UZH/PMT_Analysis)
+
 This five-script workflow extracts PMT gain from LED ON/OFF spectra, runs the analysis in batches, plots gain versus high voltage, studies SPE resolution, and creates a plain charge-spectrum figure.
 
 ## Scripts
