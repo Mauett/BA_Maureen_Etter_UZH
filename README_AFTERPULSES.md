@@ -1,5 +1,7 @@
 # PMT afterpulse analysis
 
+This work was based on the existing pmt_analysis package, mainly developed by Alexander Bismarck (https://github.com/Physik-Institut-UZH/PMT_Analysis)
+
 This four-script workflow analyzes full PMT waveform datasets, plots the results, adds uncertainties, and checks early secondary peaks that may be ringing.
 
 ## Scripts
