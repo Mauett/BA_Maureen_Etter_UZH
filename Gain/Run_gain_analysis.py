@@ -161,7 +161,7 @@ def main():
         print(f"WARNING: analysis script does not exist yet: {ANALYSIS}")
 
     for pmt_folder in PMT_FOLDERS:
-        folder = BASE_PATH / pmt_folder
+        folder = DATA_ROOT / pmt_folder
         print(f"\nChecking folder: {folder}")
 
         if not folder.is_dir():
