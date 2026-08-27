@@ -34,7 +34,7 @@ import pandas as pd
 # ------------------------------------------------------------------
 
 DATA_DIR = Path("/disk/gfs_atp/lhoetz/marmotx/Xdet_DCrates")
-SAVE_DIR = Path("/home/uzh/mauett/PMT_Analysis_Mauett/Dark_Counts/Over2PE")
+SAVE_DIR = Path(__file__).resolve().parent / "Dark_Counts_Results_Over2PE"
 
 GAIN_RESULTS_DIRS = [
     # Same source as plot_pmt_gain_vs_high_voltage_no_chi2.py.
