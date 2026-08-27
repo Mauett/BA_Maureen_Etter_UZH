@@ -50,7 +50,7 @@ import pandas as pd
 DATA_DIR = Path("/disk/gfs_atp/lhoetz/marmotx/Xdet_DCrates")
 
 # Folder where all plots, text summaries, and CSV result tables are saved.
-SAVE_DIR = Path("/home/uzh/mauett/PMT_Analysis_Mauett/Dark_Counts")
+SAVE_DIR = Path(__file__).resolve().parent / "Dark_Counts_Results"
 
 # Default command-line values. Usually you only need to change DATA_DIR and
 # SAVE_DIR above.
